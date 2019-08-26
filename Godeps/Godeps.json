@@ -1,0 +1,94 @@
+{
+	"ImportPath": "mefuwei/wdns",
+	"GoVersion": "go1.11",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.3.1",
+			"Rev": "3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/consistenthash",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/hashtag",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/pool",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/proto",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/singleflight",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/util",
+			"Comment": "v6.14.2-36-gc7d2ae6",
+			"Rev": "c7d2ae66a004395d3420f640372791d1a002e6a6"
+		},
+		{
+			"ImportPath": "github.com/gpmgo/gopm/modules/log",
+			"Comment": "0.7.2-66-g7edb73a",
+			"Rev": "7edb73a0f439c016ee40b6608bc271c7fc4462e9"
+		},
+		{
+			"ImportPath": "github.com/miekg/dns",
+			"Comment": "v1.0.15-2-g1c9c9bf4",
+			"Rev": "1c9c9bf4c93ee029810272d3e5b8a126aee5bf1f"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ed25519",
+			"Rev": "0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ed25519/internal/edwards25519",
+			"Rev": "0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb"
+		},
+		{
+			"ImportPath": "golang.org/x/net/bpf",
+			"Rev": "49bb7cea24b1df9410e1712aa6433dae904ff66a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/internal/iana",
+			"Rev": "49bb7cea24b1df9410e1712aa6433dae904ff66a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/internal/socket",
+			"Rev": "49bb7cea24b1df9410e1712aa6433dae904ff66a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/ipv4",
+			"Rev": "49bb7cea24b1df9410e1712aa6433dae904ff66a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/ipv6",
+			"Rev": "49bb7cea24b1df9410e1712aa6433dae904ff66a"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "1c9583448a9c3aa0f9a6a5241bf73c0bd8aafded"
+		}
+	]
+}
