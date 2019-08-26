@@ -97,3 +97,8 @@ maxCount = 0
 #### 架构
 
 > 请求查询顺序 缓存 [memory] --> 存储[redis|mysql] --> nameserver  
+
+
+> DNS记录类型与编号中文版   https://zh.wikipedia.org/wiki/DNS%E8%AE%B0%E5%BD%95%E7%B1%BB%E5%9E%8B%E5%88%97%E8%A1%A8
+
+> DNS 记录类型与编英文版 https://en.wikipedia.org/wiki/List_of_DNS_record_types
