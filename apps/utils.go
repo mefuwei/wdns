@@ -4,7 +4,10 @@
 */
 package apps
 
-import "net"
+import (
+	"github.com/pkg/errors"
+	"net"
+)
 
 func VerifyIP(s string) bool {
 
@@ -16,35 +19,40 @@ func VerifyIP(s string) bool {
 }
 
 // 域名解析记录冲突验证
-func VerifyDomainConflict(s *JsonSerializer, list []*JsonSerializer) bool {
-
-	parseType := s.ParseType
+func VerifyRecordRules(s *JsonSerializer, list []*JsonSerializer) (e error) {
 
 	for _, v := range list {
 
 		if *s == *v {
-			return false
+			return errors.New("记录已经存在")
 		}
 
 	}
 
-	if parseType == "A" || parseType == "AAAA" {
-		for _, v := range list {
-			if v.ParseType == "CNAME" {
-				return false
-			}
-		}
-		return true
+	for _, one := range list {
+		if s.Area == one.Area {
+			switch s.Rtype {
+			case "A":
+				if one.Rtype == "CNAME" {
+					return errors.New("A记录与CNAME记录冲突")
+				}
+			case "AAAA":
 
-	} else if parseType == "CNAME" {
-		for _, v := range list {
-			if v.ParseType == "CNAME" {
-				return false
+				if one.Rtype == "CNAME" {
+					return errors.New("AAAA记录与CNAME记录冲突")
+				}
+			case "CNAME":
+
+				if one.Rtype == "A" {
+					return errors.New("CNAME记录与A记录冲突")
+				}
+				if one.Rtype == "AAAA" {
+					return errors.New("CNAME记录与AAAA记录冲突")
+				}
 			}
+
 		}
-		return true
-	} else {
-		return true
+
 	}
-
+	return nil
 }

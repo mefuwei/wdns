@@ -15,20 +15,26 @@ TODO: Redis storage engine
 */
 
 type JsonSerializer struct {
-	ParseResult string `json:"parse_result"`
-	ParseType   string `json:"parse_type"`
-	Ttl         int    `json:"ttl"`
+	// domain json struct
+	Rtype  string        `json:"rtype"`
+	Prefix string        `json:"prefix"`
+	Domain string        `json:"domain"`
+	Area   int           `json:"area"`
+	Value  string        `json:"value"`
+	Ttl    time.Duration `json:"ttl"`
 }
 
-func Loads(data []byte) ([]*JsonSerializer, error) {
-	var ret []*JsonSerializer
-	err := json.Unmarshal(data, &ret)
-	return ret, err
+type RedisSerializer []*JsonSerializer
+
+func (c *RedisSerializer) Loads(str string) error {
+	err := json.Unmarshal([]byte(str), &c)
+	return err
 }
 
-func Dumps(c []*JsonSerializer) (encoded []byte, err error) {
-	encoded, err = json.Marshal(c)
-	return
+func (c *RedisSerializer) Dumps() (str string, err error) {
+	encoded, err := json.Marshal(c)
+
+	return string(encoded), err
 
 }
 
@@ -39,58 +45,21 @@ type RedisEngine struct {
 	// Serializer JsonSerializer
 }
 
-// add parse area
-func (c *RedisEngine) SetArea(v ...string) error {
-	_, err := c.Backend.SAdd(Config.Area, v).Result()
+func (c *RedisEngine) HSet(domain, prefix string, data *JsonSerializer) error {
+	var err error
+	dataList := RedisSerializer{}
+
+	dataList, err = c.HGet(domain, prefix)
+
+	err = VerifyRecordRules(data, dataList)
 	if err != nil {
+		logger.Infoln(err)
 		return err
 	}
-	return nil
-}
-
-// get area  default_cname_baidu_com_a_60
-func (c *RedisEngine) GetArea() ([]string, error) {
-	s, err := c.Backend.SMembers(Config.Area).Result()
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-
-}
-
-// redis
-func (c *RedisEngine) Set(key string, v ...string) error {
-
-	if _, err := c.Backend.SAdd(key, v).Result(); err != nil {
-		return err
-	} else {
-		return nil
-	}
-
-}
-
-// get area
-func (c *RedisEngine) Get(key string) ([]string, error) {
-	result, err := c.Backend.SMembers(key).Result()
-	if err != nil {
-		log.Printf("redis error : %v : pharse Get %s ", err.Error(), key)
-		return nil, err
-	}
-
-	return result, nil
-
-}
-
-func (c *RedisEngine) HSet(area, domain string, value *JsonSerializer) error {
-
-	var data, err = c.HGet(area, domain)
-	if ok := VerifyDomainConflict(value, data); !ok {
-		return recordConflict{key: domain}
-	}
-	data = append(data, value)
-	encoded, err := Dumps(data)
+	dataList = append(dataList, data)
+	jsonStr, err := dataList.Dumps()
 	if err == nil {
-		c.Backend.HSet(area, domain, encoded)
+		c.Backend.HSet(domain, prefix, jsonStr)
 
 	} else {
 
@@ -100,11 +69,13 @@ func (c *RedisEngine) HSet(area, domain string, value *JsonSerializer) error {
 	return nil
 }
 
-func (c *RedisEngine) HGet(area, domain string) ([]*JsonSerializer, error) {
+func (c *RedisEngine) HGet(domain, prefix string) (RedisSerializer, error) {
+	dataList := RedisSerializer{}
 
-	value, err := c.Backend.HGet(area, domain).Result()
+	str, err := c.Backend.HGet(domain, prefix).Result()
 	if err == nil {
-		return Loads([]byte(value))
+
+		return dataList, dataList.Loads(str)
 	}
 	return nil, err
 }
@@ -137,14 +108,20 @@ func init() {
 	redisEngine = NewRedisEngine()
 	// redis  health
 	go func() {
-		for {
-			ok := redisEngine.Ping()
+		switch Config.DbType {
+		case "REDIS":
+			for {
 
-			if Config.Redis.Enable != ok {
-				Config.Redis.Enable = redisEngine.Ping()
-				log.Printf("redis enable change %v ", ok)
+				ok := redisEngine.Ping()
+				if !ok {
+					logger.Infof("the redis server is down ")
+				}
+
+				time.Sleep(3 * time.Second)
 			}
-			time.Sleep(3 * time.Second)
+		default:
+
+			logger.Infof("break check ")
 		}
 
 	}()

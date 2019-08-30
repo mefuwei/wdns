@@ -6,12 +6,13 @@ import (
 	"log"
 	"time"
 
+	"fmt"
 	"github.com/miekg/dns"
 )
 
 const (
 	notIPQuery = 0
-	_IP4Query  = 4
+	_IP4Query  = 1
 	_IP6Query  = 28
 	_IPCname   = 5
 )
@@ -55,16 +56,18 @@ func (h *GODNSHandler) do(Net string, w dns.ResponseWriter, req *dns.Msg) {
 	} else {
 		remote = w.RemoteAddr().(*net.UDPAddr).IP
 	}
-	logger.Debugf("remote ip %s", remote)
-	queryCache := h.isQueryCache(q)
-	key := KeyGen(Q)
+	logger.Infof("remote ip %s", remote)
+	queryMemoryCache := h.isQueryCache(q)
+	memoryMapKey := KeyGen(Q.String())
 
-	//  A | AAAA query  memory cache
-	if queryCache > 0 {
-		mesg, err := h.memoryCache.Get(key)
+	//  the type  A or AAAA   query  memory cache
+	if queryMemoryCache > 0 {
+		mesg, err := h.memoryCache.Get(memoryMapKey)
 		if err != nil {
-			log.Printf("%s din't hit mcache", Q.String())
+			logger.Infof("%s din't hit memory cache", Q.String())
 		} else {
+			logger.Infof("the domain  %s hit memory cache", Q.String())
+
 			msg := *mesg
 			msg.Id = req.Id
 			w.WriteMsg(&msg)
@@ -72,48 +75,52 @@ func (h *GODNSHandler) do(Net string, w dns.ResponseWriter, req *dns.Msg) {
 		}
 
 	}
-	if Config.Redis.Enable {
-		// query dns result from  storage
+	switch Config.DbType {
+	case "REDIS":
 		logger.Infof("find %v from redis engine, phase : start ", Q.String())
 
-		ips, err := h.db.Get("t")
-		if err == nil && len(ips) > 0 {
+		//ips, err := h.db.HGet("www.baidu.com","wwww")
+		//if err == nil && len(ips) > 0 {
+		//	m := new(dns.Msg)
+		//	m.SetReply(req)
+		//	rr_header := dns.RR_Header{
+		//		Name:   q.Name,
+		//		Rrtype: dns.TypeA,
+		//		Class:  dns.ClassINET,
+		//		Ttl:    600,
+		//	}
+		//	var ip net.IP
+		//	for _, v := range ips {
+		//		ip = net.ParseIP(v).To4()
+		//		m.Answer = append(m.Answer, &dns.A{rr_header, ip})
+		//
+		//	}
+		//
+		//	w.WriteMsg(m)
+		//	logger.Infof("find %v from db engine, phase : end ", Q.String())
+		//	return
+		//
+		//}
 
-			m := new(dns.Msg)
-			m.SetReply(req)
-			rr_header := dns.RR_Header{
-				Name:   q.Name,
-				Rrtype: dns.TypeA,
-				Class:  dns.ClassINET,
-				Ttl:    600,
-			}
-			var ip net.IP
-			for _, v := range ips {
-				ip = net.ParseIP(v).To4()
-				m.Answer = append(m.Answer, &dns.A{rr_header, ip})
-
-			}
-
-			w.WriteMsg(m)
-			logger.Infof("find %v from db engine, pharse : end ", Q.String())
-
-		}
-	} else {
-		log.Printf("find %v from resolver , pharse : start ", Q.String())
-
-		mesg, err := h.resolver.Lookup(Net, req)
-		if err != nil {
-			logger.Warnf("Resolve query error %s", err)
-			dns.HandleFailed(w, req)
-
-			// cache the failure, too!
-		}
-		// set query to memory
-		h.cache.Set(key, mesg)
-
-		w.WriteMsg(mesg)
+	default:
+		logger.Infof("other ")
 
 	}
+
+	log.Printf("find %v from resolver , phase : start ", Q.String())
+
+	mesg, err := h.resolver.Lookup(Net, req)
+	if err != nil {
+		fmt.Println("ssf")
+		dns.HandleFailed(w, req)
+
+		// cache the failure, too!
+	} else {
+		h.memoryCache.Set(memoryMapKey, mesg)
+
+		w.WriteMsg(mesg)
+	}
+	// set query to memory
 
 }
 

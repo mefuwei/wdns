@@ -8,11 +8,10 @@ import (
 
 func TestNewResolver(t *testing.T) {
 	m := new(dns.Msg)
-	m.SetQuestion(dns.Fqdn("zzweb.aptyun.com"), dns.TypeA)
+	m.SetQuestion(dns.Fqdn("www.baidu.com"), dns.TypeA)
 	r := NewResolver()
 	dd, e := r.Lookup("udp", m)
 	fmt.Println(e)
 	fmt.Println(dd)
-	fmt.Println(m.Answer)
 
 }

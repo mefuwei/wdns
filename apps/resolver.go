@@ -2,12 +2,16 @@ package apps
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/miekg/dns"
-	"log"
+	"os"
 	"strings"
 	"sync"
+	"time"
+)
+
+var (
+	dnsc *dns.Client
+	dnsf *dns.ClientConfig
 )
 
 type ResolvError struct {
@@ -40,7 +44,7 @@ func NewResolver() *Resolver {
 
 func (r Resolver) Lookup(net string, req *dns.Msg) (message *dns.Msg, err error) {
 
-	c := &dns.Client{
+	dnsc = &dns.Client{
 		Net:          net,
 		ReadTimeout:  r.timeout,
 		WriteTimeout: r.timeout,
@@ -52,53 +56,66 @@ func (r Resolver) Lookup(net string, req *dns.Msg) (message *dns.Msg, err error)
 	var wg sync.WaitGroup
 	L := func(nameserver string) {
 		defer wg.Done()
-		r, rtt, err := c.Exchange(req, nameserver)
+		r, rtt, err := dnsc.Exchange(req, nameserver)
 		if err != nil {
-			log.Printf("%s socket error on %s", qname, nameserver)
-			log.Printf("error:%s", err.Error())
+			logger.Debugf("%s socket error on %s error: ", nameserver, err.Error())
 			return
 		}
-		// If SERVFAIL happen, should return immediately and try another upstream resolver.
-		// However, other Error code like NXDOMAIN is an clear response stating
-		// that it has been verified no such domain existas and ask other resolvers
-		// would make no sense. See more about #20
-		if r != nil && r.Rcode != dns.RcodeSuccess {
-			log.Printf("%s failed to get an valid answer on %s", qname, nameserver)
-			if r.Rcode == dns.RcodeServerFailure {
-				return
+		//if r == nil || r.Rcode == dns.RcodeNameError || r.Rcode == dns.RcodeSuccess{
+		//if r != nil && r.Rcode != dns.RcodeSuccess {
+		//		//	log.Printf("%s failed to get an valid answer on %s", qname, nameserver)
+		//		//	if r.Rcode == dns.RcodeServerFailure {
+		//		//		return
+		//		//	}
+		//		//}
+
+		if r == nil || r.Rcode == dns.RcodeNameError || r.Rcode == dns.RcodeSuccess {
+
+			re := &RResponse{r, nameserver, rtt}
+			select {
+			case res <- re:
+			default:
 			}
-		}
-		re := &RResponse{r, nameserver, rtt}
-		select {
-		case res <- re:
-		default:
+		} else {
+			return
 		}
 	}
 
 	ticker := time.NewTicker(time.Duration(200) * time.Millisecond)
 	defer ticker.Stop()
-	// Start lookup on each nameserver top-down, in every second
-	nameservers := Config.Resolv.DNSServers()
-	for _, nameserver := range nameservers {
+
+	for _, server := range dnsf.Servers {
 		wg.Add(1)
-		go L(nameserver)
+		go L(server + ":" + dnsf.Port)
 		// but exit early, if we have an answer
 		select {
 		case re := <-res:
-			log.Printf("%s resolv on %s rtt: %v", RemoveDomain(qname), re.nameserver, re.rtt)
+
 			return re.msg, nil
 		case <-ticker.C:
 			continue
 		}
 	}
-	// wait for all the namservers to finish
+	// wait for all the namserver to finish, catch not data return error
 	wg.Wait()
 	select {
 	case re := <-res:
-		log.Printf("%s resolv on %s rtt: %v", RemoveDomain(qname), re.nameserver, re.rtt)
 		return re.msg, nil
 	default:
-		return nil, ResolvError{qname, net, nameservers}
+		return nil, ResolvError{qname, net, dnsf.Servers}
+	}
+
+}
+
+func init() {
+	var err error
+	dnsf, err = dns.ClientConfigFromFile("/etc/resolv.conf")
+	fmt.Println(dnsf)
+	if err != nil || dnsf == nil {
+		fmt.Printf("Cannot initialize the local resolver: %s\n", err)
+		os.Exit(1)
+	} else {
+		fmt.Println("load nameserver success")
 	}
 
 }

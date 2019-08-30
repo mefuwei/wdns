@@ -1,25 +1,17 @@
 package apps
 
 import (
-	"fmt"
 	"testing"
 )
 
-func TestRedisEngine_connect(t *testing.T) {
-	if s, err := redisEngine.GetArea(); err != nil {
-		fmt.Println(err)
-	} else {
-		for _, v := range s {
-			fmt.Println(v)
-		}
-	}
-}
-
 func TestRedisEngine_HSet(t *testing.T) {
 	var data JsonSerializer
-	data.ParseResult = "10.10.10.10"
-	data.ParseType = "A"
+	data.Domain = "www.dsb.com"
+	data.Area = 1
 	data.Ttl = 600
-	redisEngine.HSet("wdns:bj-sh", "www.test.com", &data)
-	redisEngine.Ping()
+	data.Prefix = "www"
+	data.Rtype = "A"
+	data.Value = "19.19.19.191"
+	redisEngine.HSet("wdns:dsb.com", "www", &data)
+	//redisEngine.Ping()
 }

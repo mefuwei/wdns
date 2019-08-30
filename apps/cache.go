@@ -1,11 +1,11 @@
 package apps
 
 import (
-	md52 "crypto/md5"
-	"fmt"
 	"sync"
 	"time"
 
+	"crypto/md5"
+	"encoding/hex"
 	"github.com/miekg/dns"
 )
 
@@ -78,10 +78,9 @@ func (c *MemoryCache) IsFull() bool {
 }
 
 // create md5 key
-func KeyGen(q Question) string {
-	md5 := md52.New()
-	md5.Write([]byte(q.String()))
-	x := md5.Sum(nil)
-	return fmt.Sprintf("%s", x)
+func KeyGen(str string) string {
+	h := md5.New()
+	h.Write([]byte(str))
+	return hex.EncodeToString(h.Sum(nil))
 
 }

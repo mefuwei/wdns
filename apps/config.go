@@ -17,7 +17,7 @@ type DNSServerSetting struct {
 }
 
 type RedisSettings struct {
-	Enable   bool
+	//Enable   bool
 	Host     string
 	Port     int
 	DB       int
@@ -58,13 +58,14 @@ type LogSettings struct {
 }
 
 type Settings struct {
+	DbType  string `toml:"DbType"`
 	Area    string
 	Version string
 	Debug   bool
 	Author  string
 	Server  DNSServerSetting `toml:"server"`
-	Redis   RedisSettings    `toml:redis`
-	Log     LogSettings      `toml:log`
+	Redis   RedisSettings    `toml:"redis"`
+	Log     LogSettings      `toml:"log"`
 	Cache   CacheSettings    `toml:"cache"`
 	Resolv  ResolvSetting    `toml:"resolv"`
 }
