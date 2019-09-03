@@ -80,6 +80,17 @@ func (c *RedisEngine) HGet(domain, prefix string) (RedisSerializer, error) {
 	return nil, err
 }
 
+func (c *RedisEngine) Exist(prefix string) (bool, error) {
+	if res, err := c.Backend.Keys(prefix).Result(); err != nil {
+		return false, err
+	} else {
+		if res == nil {
+			return false, nil // not exist
+		}
+		return true, nil
+	}
+}
+
 func (c *RedisEngine) Ping() bool {
 	result := c.Backend.Ping().Err()
 	if result != nil {
@@ -101,7 +112,6 @@ func NewRedisEngine() *RedisEngine {
 			WriteTimeout: 2 * time.Second,
 		}),
 	}
-
 }
 
 func init() {
@@ -125,5 +135,4 @@ func init() {
 		}
 
 	}()
-
 }
