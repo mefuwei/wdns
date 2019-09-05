@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/glog"
+	"github.com/golang/glog"
 	"github.com/go-redis/redis"
 	"github.com/mefuwei/wdns/apps"
 	"github.com/miekg/dns"
@@ -13,9 +15,14 @@ import (
 )
 
 var (
-	dnsMsgKey = "dns:%s:%s:d" // dns:{viewName}:{domainName}:{qtype} dns:default:www.qianbao-inc.com:1
-	dnsPrefixKey = "dns:%s:*"
+	dnsMsgKey = "dns:%s:%s:%d" // dns:{domainName}:{qtype} dns:www.qianbao-inc.com:1
+	dnsPrefixKey = "dns:*"
 	redisBackendStorage *RedisBackendStorage
+
+	// error
+	RedisGetFailed = "redis backend storage get name: %s type: %d failed, %s"
+	JsonParseFailed = "redis backend storage json parse msg failed name: %s type %d, %s"
+	ParseDnsMsgFailed = "redis backend storage parse dns.msg failed name: %s type: %d, %s"
 )
 
 func init() {
@@ -40,7 +47,7 @@ func init() {
 
 func NewRedisBackendStorage() *RedisBackendStorage {
 	rbs := &RedisBackendStorage{
-		Backend: redis.NewClient(&redis.Options{
+		Client: redis.NewClient(&redis.Options{
 			Addr:         apps.Config.Redis.Addr(),
 			Password:     apps.Config.Redis.Password,
 			DB:           apps.Config.Redis.DB,
@@ -56,12 +63,8 @@ type RedisBackendStorage struct {
 	Client *redis.Client
 }
 
-func (rbs *RedisBackendStorage) List(viewName string) (msgs []*dns.Msg, err error) {
-	if viewName == "" {
-		viewName = "default"
-	}
-
-	keys, err := rbs.Keys(viewName)
+func (rbs *RedisBackendStorage) List() (msgs []*dns.Msg, err error) {
+	keys, err := rbs.Keys()
 	if err != nil {
 		return msgs, err
 	}
@@ -69,16 +72,35 @@ func (rbs *RedisBackendStorage) List(viewName string) (msgs []*dns.Msg, err erro
 	return rbs.ParseMsg(keys)
 }
 
-func (rbs *RedisBackendStorage) Get(name string, qtype uint16) (*dns.Msg, error) {
+func (rbs *RedisBackendStorage) Get(name string, qtype uint16) (msg *dns.Msg, err error) {
+	key := fmt.Sprintf(dnsMsgKey, name, qtype)
 
+	res, err := rbs.Client.Get(key).Result()
+	if err != nil {
+		glog.Errorf(RedisGetFailed, name, qtype, err.Error())
+		return
+	}
+
+	var records []Record
+	if err := json.Unmarshal([]byte(res), &records); err != nil {
+		glog.Errorf(JsonParseFailed, name, qtype, err.Error())
+		return
+	}
+
+	msg, err = SwitchMsg(records)
+	if err != nil {
+		glog.Error(ParseDnsMsgFailed, name, qtype, err.Error())
+		return
+	}
+	return msg, nil
 }
 
 func (rbs *RedisBackendStorage) Set(msg *dns.Msg) error {
 
 }
 
-func (rbs *RedisBackendStorage) Keys(viewName string) (keys []string, err error) {
-	key := fmt.Sprintf(dnsPrefixKey, viewName)
+func (rbs *RedisBackendStorage) Keys() (keys []string, err error) {
+	key := fmt.Sprintf(dnsPrefixKey)
 
 	// 这么写是为了好扩展
 	if keys, err := rbs.Client.Keys(key).Result(); err != nil {
@@ -89,7 +111,6 @@ func (rbs *RedisBackendStorage) Keys(viewName string) (keys []string, err error)
 
 func (rbs *RedisBackendStorage) ParseMsg(keys []string) (msgs []*dns.Msg, err error) {
 	for _, k := range keys {
-		// dns:{viewName}:{domainName}:{qtype} dns:default:www.qianbao-inc.com:1
 		flag := strings.Split(k, ":")
 		name := flag[2]
 		qt, _ := strconv.Atoi(flag[3])
