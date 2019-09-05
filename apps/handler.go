@@ -1,12 +1,13 @@
 package apps
 
 import (
+	"fmt"
+	"github.com/mefuwei/dns/apps/storage"
 	"net"
+	"strconv"
 
-	"log"
 	"time"
 
-	"fmt"
 	"github.com/miekg/dns"
 )
 
@@ -29,19 +30,24 @@ func (q *Question) String() string {
 
 func NewHandler() *GODNSHandler {
 	var cache, memoryCache Cache
+
+	addr := net.JoinHostPort(Config.Redis.Host, strconv.Itoa(Config.Redis.Port))
+	passwd := Config.Redis.Password
+	db := Config.Redis.Port
+
 	memoryCache = &MemoryCache{
 		Backend:  make(map[string]Mesg, Config.Cache.MaxCount),
 		Expire:   time.Duration(Config.Cache.Expire) * time.Second,
 		MaxCount: Config.Cache.MaxCount,
 	}
-	return &GODNSHandler{cache, memoryCache, NewResolver(), redisEngine}
+	return &GODNSHandler{cache, memoryCache, NewResolver(), storage.NewRedisBackendStorage(addr, passwd, db)}
 
 }
 
 type GODNSHandler struct {
 	cache, memoryCache Cache
 	resolver           *Resolver
-	db                 *RedisEngine
+	db                 *storage.RedisBackendStorage
 }
 
 func (h *GODNSHandler) do(Net string, w dns.ResponseWriter, req *dns.Msg) {
@@ -57,6 +63,7 @@ func (h *GODNSHandler) do(Net string, w dns.ResponseWriter, req *dns.Msg) {
 		remote = w.RemoteAddr().(*net.UDPAddr).IP
 	}
 	logger.Infof("remote ip %s", remote)
+
 	queryMemoryCache := h.isQueryCache(q)
 	memoryMapKey := KeyGen(Q.String())
 
@@ -75,40 +82,57 @@ func (h *GODNSHandler) do(Net string, w dns.ResponseWriter, req *dns.Msg) {
 		}
 
 	}
-	switch Config.DbType {
-	case "REDIS":
-		logger.Infof("find %v from redis engine, phase : start ", Q.String())
 
-		//ips, err := h.db.HGet("www.baidu.com","wwww")
-		//if err == nil && len(ips) > 0 {
-		//	m := new(dns.Msg)
-		//	m.SetReply(req)
-		//	rr_header := dns.RR_Header{
-		//		Name:   q.Name,
-		//		Rrtype: dns.TypeA,
-		//		Class:  dns.ClassINET,
-		//		Ttl:    600,
-		//	}
-		//	var ip net.IP
-		//	for _, v := range ips {
-		//		ip = net.ParseIP(v).To4()
-		//		m.Answer = append(m.Answer, &dns.A{rr_header, ip})
-		//
-		//	}
-		//
-		//	w.WriteMsg(m)
-		//	logger.Infof("find %v from db engine, phase : end ", Q.String())
-		//	return
-		//
-		//}
-
-	default:
-		logger.Infof("other ")
-
+	logger.Info("Use Redis cache.")
+	storageName := Config.DbType
+	addr := net.JoinHostPort(Config.Redis.Host, strconv.Itoa(Config.Redis.Port))
+	passwd := Config.Redis.Password
+	db := Config.Redis.Port
+	s := storage.GetStorage(storageName, addr, passwd, db)
+	name, qtype := q.Name, q.Qtype
+	msg , err := s.Get(name, qtype)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return
 	}
+	w.WriteMsg(msg)
+	return
+	//switch Config.DbType {
+	//case "REDIS":
+	//	logger.Infof("find %v from redis engine, phase : start ", Q.String())
+	//
+	//
+	//
+	//	//ips, err := h.db.HGet("www.baidu.com","wwww")
+	//	//if err == nil && len(ips) > 0 {
+	//	//	m := new(dns.Msg)
+	//	//	m.SetReply(req)
+	//	//	rr_header := dns.RR_Header{
+	//	//		Name:   q.Name,
+	//	//		Rrtype: dns.TypeA,
+	//	//		Class:  dns.ClassINET,
+	//	//		Ttl:    600,
+	//	//	}
+	//	//	var ip net.IP
+	//	//	for _, v := range ips {
+	//	//		ip = net.ParseIP(v).To4()
+	//	//		m.Answer = append(m.Answer, &dns.A{rr_header, ip})
+	//	//
+	//	//	}
+	//	//
+	//	//	w.WriteMsg(m)
+	//	//	logger.Infof("find %v from db engine, phase : end ", Q.String())
+	//	//	return
+	//	//
+	//	//}
+	//
+	//default:
+	//	logger.Infof("other ")
+	//
+	//}
 
-	log.Printf("find %v from resolver , phase : start ", Q.String())
-
+	//log.Printf("find %v from resolver , phase : start ", Q.String())
+	//
 	mesg, err := h.resolver.Lookup(Net, req)
 	if err != nil {
 		fmt.Println("ssf")

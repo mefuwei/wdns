@@ -76,7 +76,7 @@ var (
 
 func init() {
 	var configFile string
-	flag.StringVar(&configFile, "c", "/Users/fuwei/go/src/mefuwei/wdns/etc/dns.conf", "./wdns -c etc/dns.conf")
+	flag.StringVar(&configFile, "c", "etc/dns.conf", "./wdns -c etc/dns.conf")
 	flag.Parse()
 	if _, err := toml.DecodeFile(configFile, &Config); err != nil {
 		fmt.Printf("%s is valid toml config \n", configFile)

@@ -1,4 +1,4 @@
-module github.com/mefuwei/wdns
+module github.com/mefuwei/dns
 
 go 1.12
 

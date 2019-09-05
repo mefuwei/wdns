@@ -2,11 +2,9 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/golang/glog"
 	"github.com/go-redis/redis"
-	"github.com/mefuwei/wdns/apps"
+	"github.com/golang/glog"
 	"github.com/miekg/dns"
 	"log"
 	"strconv"
@@ -15,42 +13,43 @@ import (
 )
 
 var (
-	dnsMsgKey = "dns:%s:%s:%d" // dns:{domainName}:{qtype} dns:www.qianbao-inc.com:1
+	dnsMsgKey = "dns:%s:%d" // dns:{domainName}:{qtype} dns:www.qianbao-inc.com:1
 	dnsPrefixKey = "dns:*"
 	redisBackendStorage *RedisBackendStorage
 
-	// error
+	// falied message
 	RedisGetFailed = "redis backend storage get name: %s type: %d failed, %s"
+	RedisSetFailed = "redis backend storage set key: %s failed, %s"
 	JsonParseFailed = "redis backend storage json parse msg failed name: %s type %d, %s"
 	ParseDnsMsgFailed = "redis backend storage parse dns.msg failed name: %s type: %d, %s"
 )
 
-func init() {
-	redisBackendStorage = NewRedisBackendStorage()
-	// redis  health
-	go func() {
-		switch apps.Config.DbType {
-		case "REDIS":
-			for {
-				ok := redisBackendStorage.Ping()
-				if !ok {
-					glog.Infof("the redis server is down ")
-					redisBackendStorage = NewRedisBackendStorage()
-				}
-				time.Sleep(3 * time.Second)
-			}
-		default:
-			glog.Infof("break check ")
-		}
-	}()
-}
+//func init() {
+//	redisBackendStorage = NewRedisBackendStorage()
+//	// redis  health
+//	go func() {
+//		switch apps.Config.DbType {
+//		case "REDIS":
+//			for {
+//				ok := redisBackendStorage.Ping()
+//				if !ok {
+//					glog.Infof("the redis server is down ")
+//					redisBackendStorage = NewRedisBackendStorage()
+//				}
+//				time.Sleep(3 * time.Second)
+//			}
+//		default:
+//			glog.Infof("break check ")
+//		}
+//	}()
+//}
 
-func NewRedisBackendStorage() *RedisBackendStorage {
+func NewRedisBackendStorage(Addr, Password string, db int) *RedisBackendStorage {
 	rbs := &RedisBackendStorage{
 		Client: redis.NewClient(&redis.Options{
-			Addr:         apps.Config.Redis.Addr(),
-			Password:     apps.Config.Redis.Password,
-			DB:           apps.Config.Redis.DB,
+			Addr:         Addr,
+			Password:     Password,
+			DB:           db,
 			PoolSize:     10,
 			ReadTimeout:  2 * time.Second,
 			WriteTimeout: 2 * time.Second,
@@ -78,13 +77,13 @@ func (rbs *RedisBackendStorage) Get(name string, qtype uint16) (msg *dns.Msg, er
 	res, err := rbs.Client.Get(key).Result()
 	if err != nil {
 		glog.Errorf(RedisGetFailed, name, qtype, err.Error())
-		return
+		return msg, err
 	}
 
 	var records []Record
 	if err := json.Unmarshal([]byte(res), &records); err != nil {
 		glog.Errorf(JsonParseFailed, name, qtype, err.Error())
-		return
+		return msg, err
 	}
 
 	msg, err = SwitchMsg(records)
@@ -95,8 +94,31 @@ func (rbs *RedisBackendStorage) Get(name string, qtype uint16) (msg *dns.Msg, er
 	return msg, nil
 }
 
-func (rbs *RedisBackendStorage) Set(msg *dns.Msg) error {
+func (rbs *RedisBackendStorage) Set(records []Record) error {
+	var name string
+	var qtype uint16
+	var key string
 
+	for _, record := range records {
+		name = ParseName(record.Host, record.Domain)
+		qtype = record.Rtype
+		break
+	}
+	key = fmt.Sprintf(dnsMsgKey, name, qtype)
+	return rbs.set(key, records)
+}
+
+func (rbs *RedisBackendStorage) set(key string, records []Record) error {
+
+	data, err := json.Marshal(records)
+	if err != nil {
+		return fmt.Errorf(RedisSetFailed, key, err.Error())
+	}
+
+	if _, err := rbs.Client.Set(key, data, time.Microsecond * 0).Result(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rbs *RedisBackendStorage) Keys() (keys []string, err error) {
