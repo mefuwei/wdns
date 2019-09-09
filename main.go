@@ -1,31 +1,19 @@
 package main
 
 import (
-	"github.com/mefuwei/dns/apps"
-	"os"
-	"os/signal"
-	"time"
+	"flag"
+	"github.com/mefuwei/dns/apps/core"
 )
 
+var (
+	addr string
+)
+
+func init()  {
+	flag.StringVar(&addr, "addr", "0.0.0.0:53", "bind host, example 192.168.1.1:53")
+}
+
 func main() {
-
-	svr := &apps.Server{
-		Host:         apps.Config.Server.Host,
-		Port:         apps.Config.Server.Port,
-		ReadTimeout:  3 * time.Second,
-		WriteTimeout: 3 * time.Second,
-	}
-	svr.Run()
-
-	sig := make(chan os.Signal)
-	signal.Notify(sig, os.Interrupt)
-
-forever:
-	for {
-		select {
-		case <-sig:
-			break forever
-		}
-	}
-
+	server := core.NewServer(addr)
+	server.Start()
 }

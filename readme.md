@@ -1,6 +1,8 @@
 #### 一个简单快速的dns缓存服务器，由go编写。
 > 类似 dnsmasq,支持功能 智能区域解析 缓存 转发 ,本地解析支持类型 A记录 AAAA 记录 CNAME
 
+main -> core.Server -> Handlers -> storage...
+
 ## 任务列表
 - [x] 项目分离测试
 - [] 实现restful功能

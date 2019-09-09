@@ -15,7 +15,6 @@ import (
 var (
 	dnsMsgKey = "dns:%s:%d" // dns:{domainName}:{qtype} dns:www.qianbao-inc.com:1
 	dnsPrefixKey = "dns:*"
-	redisBackendStorage *RedisBackendStorage
 
 	// falied message
 	RedisGetFailed = "redis backend storage get name: %s type: %d failed, %s"
@@ -23,26 +22,6 @@ var (
 	JsonParseFailed = "redis backend storage json parse msg failed name: %s type %d, %s"
 	ParseDnsMsgFailed = "redis backend storage parse dns.msg failed name: %s type: %d, %s"
 )
-
-//func init() {
-//	redisBackendStorage = NewRedisBackendStorage()
-//	// redis  health
-//	go func() {
-//		switch apps.Config.DbType {
-//		case "REDIS":
-//			for {
-//				ok := redisBackendStorage.Ping()
-//				if !ok {
-//					glog.Infof("the redis server is down ")
-//					redisBackendStorage = NewRedisBackendStorage()
-//				}
-//				time.Sleep(3 * time.Second)
-//			}
-//		default:
-//			glog.Infof("break check ")
-//		}
-//	}()
-//}
 
 func NewRedisBackendStorage(Addr, Password string, db int) *RedisBackendStorage {
 	rbs := &RedisBackendStorage{
