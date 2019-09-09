@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/golang/glog"
-	"github.com/mefuwei/dns/apps"
 	"github.com/mefuwei/dns/apps/storage"
 	"github.com/miekg/dns"
 	"net"
@@ -16,6 +15,12 @@ const (
 var (
 	defaultServers = []string{"114.114.114.114", }
 	defaultPort = 53
+
+	// TODO used config
+	storageType = "redis"
+	redisAddr = "localhost"
+	redisPasswd = ""
+	redisDb = 1
 )
 
 type DnsHandler struct {}
@@ -57,12 +62,7 @@ type Handler struct {
 // TODO get backend sorage for common object
 func (h *Handler) Do() {
 
-	addr := net.JoinHostPort(apps.Config.Redis.Host, strconv.Itoa(apps.Config.Redis.Port))
-	passwd := apps.Config.Redis.Password
-	db := apps.Config.Redis.Port
-	storageName := apps.Config.DbType
-
-	sb := storage.GetStorage(storageName, addr, passwd, db)
+	sb := storage.GetStorage(storageType, redisAddr, redisPasswd, redisDb)
 	if msg, err := sb.Get(h.Name, h.Qtype); err != nil {
 		// if not match localdns proxy to resolve
 		h.Exchange()
