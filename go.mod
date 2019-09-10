@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190905025902-8e61d1d5eae5 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.2+incompatible // indirect
+	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/go-redis/redis v0.0.0-20181221093652-c7d2ae66a004
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect

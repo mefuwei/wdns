@@ -62,8 +62,8 @@ type Handler struct {
 // TODO get backend sorage for common object and this config.
 func (h *Handler) Do() {
 
-	sb := storage.GetStorage(storageType, redisAddr, redisPasswd, redisDb)
-	if msg, err := sb.Get(h.Name, h.Qtype); err != nil {
+	bs := storage.GetStorage(storageType, redisAddr, redisPasswd, redisDb)
+	if msg, err := bs.Get(h.Name, h.Qtype); err != nil {
 		// if not match local dns proxy to resolve
 		h.Exchange()
 		return

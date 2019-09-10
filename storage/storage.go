@@ -10,10 +10,14 @@ import (
 
 type Storage interface {
 	List() (msgs []*dns.Msg, err error)
+	ApiList() (records []Record, err error)
 
 	// Get a msg for backend storage, if use handler please you msg.SetReply(reqMsg)
 	Get(name string, qtype uint16) (msg *dns.Msg, err error)
+	ApiGet(name string, qtype uint16) (records []Record, err error)
+
 	Set(records []Record) error
+	ApiSet(records []Record) error
 
 	// test backend storage connect
 	Ping() bool

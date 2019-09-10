@@ -57,29 +57,8 @@ func (rbs *RedisBackendStorage) List() (msgs []*dns.Msg, err error) {
 
 // TODO redis.Keys is a bug, not patten dns:* need track this bug.
 func (rbs *RedisBackendStorage) Get(name string, qtype uint16) (msg *dns.Msg, err error) {
-
-	if !strings.HasSuffix(name, ".") {
-		name += "."
-	}
-	msg = &dns.Msg{}
-
-	key := fmt.Sprintf(dnsMsgKey, name, qtype)
-	res, err := rbs.Client.Get(key).Result()
-
-	// TODO go-redis not ensure record is None or Error.
+	records, err := rbs.get(name, qtype)
 	if err != nil {
-		// 这段逻辑需要注意，这里的err并不为空，只是为了不输出日志
-		if err.Error() == RedisEmpty {
-			return msg, err // not fund record
-		}
-		// redis failed.
-		glog.Errorf(RedisGetFailed, key, name, qtype, err.Error())
-		return msg, err
-	}
-
-	var records []Record
-	if err := json.Unmarshal([]byte(res), &records); err != nil {
-		glog.Errorf(JsonParseFailed, name, qtype, err.Error())
 		return msg, err
 	}
 
@@ -90,6 +69,33 @@ func (rbs *RedisBackendStorage) Get(name string, qtype uint16) (msg *dns.Msg, er
 		return
 	}
 	return msg, nil
+}
+
+func (rbs *RedisBackendStorage) get(name string, qtype uint16) (records []Record, err error) {
+	if !strings.HasSuffix(name, ".") {
+		name += "."
+	}
+
+	key := fmt.Sprintf(dnsMsgKey, name, qtype)
+	res, err := rbs.Client.Get(key).Result()
+
+	// TODO go-redis not ensure record is None or Error.
+	if err != nil {
+		// 这段逻辑需要注意，这里的err并不为空，只是为了不输出日志
+		if err.Error() == RedisEmpty {
+			return records, err // not fund record
+		}
+		// redis failed.
+		glog.Errorf(RedisGetFailed, key, name, qtype, err.Error())
+		return records, err
+	}
+
+	if err := json.Unmarshal([]byte(res), &records); err != nil {
+		glog.Errorf(JsonParseFailed, name, qtype, err.Error())
+		return records, err
+	}
+	return records, nil
+
 }
 
 func (rbs *RedisBackendStorage) Set(records []Record) error {
@@ -153,5 +159,23 @@ func (rbs *RedisBackendStorage) Ping() bool {
 		return false
 	}
 	return true
+}
+
+// API
+// Todo list rewrite
+func (rbs *RedisBackendStorage) ApiList() (records []Record, err error)  {
+
+}
+
+func (rbs *RedisBackendStorage) ApiGet(name string, qtype uint16) (records []Record, err error) {
+	records, err = rbs.get(name, qtype)
+	if err != nil {
+		return records, err
+	}
+	return records, nil
+}
+
+func (rbs *RedisBackendStorage) ApiSet(records []Record) error {
+	return rbs.Set(records)
 }
 
