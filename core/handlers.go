@@ -68,6 +68,8 @@ func (h *Handler) Do() {
 		h.Exchange()
 		return
 	} else {
+		// backend storage return a null msg
+		msg = msg.SetReply(h.RespMsg)
 		h.Write(msg)
 		return
 	}

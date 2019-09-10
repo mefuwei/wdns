@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+const (
+	RedisEmpty = "redis: nil"
+)
+
 var (
 	dnsMsgKey = "dns:%s:%d" // dns:{domainName}:{qtype} dns:www.qianbao-inc.com:1
 	dnsPrefixKey = "dns:*"
@@ -57,11 +61,18 @@ func (rbs *RedisBackendStorage) Get(name string, qtype uint16) (msg *dns.Msg, er
 	if !strings.HasSuffix(name, ".") {
 		name += "."
 	}
+	msg = &dns.Msg{}
 
 	key := fmt.Sprintf(dnsMsgKey, name, qtype)
-
 	res, err := rbs.Client.Get(key).Result()
+
+	// TODO go-redis not ensure record is None or Error.
 	if err != nil {
+		// 这段逻辑需要注意，这里的err并不为空，只是为了不输出日志
+		if err.Error() == RedisEmpty {
+			return msg, err // not fund record
+		}
+		// redis failed.
 		glog.Errorf(RedisGetFailed, key, name, qtype, err.Error())
 		return msg, err
 	}

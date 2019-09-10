@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"github.com/golang/glog"
 	"github.com/miekg/dns"
 	"strings"
 )
@@ -33,8 +32,6 @@ type Record struct {
 
 func GetStorage(stype, Addr, Password string, db int) Storage {
 	storageName := strings.ToLower(stype)
-
-	glog.Infof("use backend storage type: %s addr: %s db: %d", stype, Addr, db)
 
 	switch storageName {
 	case "redis":

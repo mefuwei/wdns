@@ -3,7 +3,7 @@ module github.com/mefuwei/dns
 go 1.12
 
 require (
-	github.com/BurntSushi/toml v0.3.1
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190905025902-8e61d1d5eae5 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.2+incompatible // indirect
 	github.com/go-redis/redis v0.0.0-20181221093652-c7d2ae66a004
@@ -14,8 +14,8 @@ require (
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/miekg/dns v0.0.0-20181117000014-1c9c9bf4c93e
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/pkg/errors v0.8.1
-	github.com/sirupsen/logrus v1.4.2
+	github.com/pkg/errors v0.8.1 // indirect
+	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
