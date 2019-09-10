@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/mefuwei/dns/apps/core"
+	"github.com/mefuwei/dns/core"
 )
 
 var (
