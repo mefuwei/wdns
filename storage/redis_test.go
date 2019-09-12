@@ -6,7 +6,7 @@ import (
 )
 
 type TR struct {
-	Name string
+	Name  string
 	Qtype uint16
 }
 
@@ -25,20 +25,20 @@ func TestRedisBackendStorage_Ping(t *testing.T) {
 func TestRedisBackendStorage_Set(t *testing.T) {
 	record := []Record{
 		{
-			Rtype: dns.TypeA,
-			Host: "www",
+			Rtype:  dns.TypeA,
+			Host:   "www",
 			Domain: "qianbao-inc.com.",
-			Line: 1,
-			Value: "8.8.8.8",
-			Ttl: 30,
+			Line:   1,
+			Value:  "8.8.8.8",
+			Ttl:    30,
 		},
 		{
-			Rtype: dns.TypeA,
-			Host: "www",
+			Rtype:  dns.TypeA,
+			Host:   "www",
 			Domain: "qianbao-inc.com.",
-			Line: 1,
-			Value: "9.9.9.9",
-			Ttl: 30,
+			Line:   1,
+			Value:  "9.9.9.9",
+			Ttl:    30,
 		},
 	}
 
@@ -58,7 +58,7 @@ func TestRedisBackendStorage_Get(t *testing.T) {
 	}
 
 	for _, r := range cases {
-		_ , err := redis.Get(r.Name, r.Qtype)
+		_, err := redis.Get(r.Name, r.Qtype)
 		if err != nil {
 			t.Errorf("redis get name: %s type: %d failed", r.Name, r.Qtype)
 		}

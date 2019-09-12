@@ -4,7 +4,7 @@ import "testing"
 
 func TestGetStorage(t *testing.T) {
 
-	cases := []string{"redis", }
+	cases := []string{"redis"}
 	for _, s := range cases {
 		switch s {
 		case "redis":

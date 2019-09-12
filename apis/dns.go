@@ -4,7 +4,9 @@ package apis
 
 import (
 	"github.com/emicklei/go-restful"
+	"github.com/golang/glog"
 	"github.com/mefuwei/dns/storage"
+	"net/http"
 )
 
 var (
@@ -26,7 +28,20 @@ func Get(r *restful.Request, w *restful.Response)  {
 }
 
 func Add(r *restful.Request, w *restful.Response)  {
+	records := []storage.Record
+	err := r.ReadEntity(&records)
+	if err != nil {
+		FailedResp(r, w, http.StatusBadRequest, err.Error())
+		return
+	}
 
+	s := getStorage()
+	if err := s.Set(records); err != nil {
+		FailedResp(r, w, http.StatusInternalServerError, err.Error())
+	}
+
+	SuccessResp(r, w, nil)
+	return
 }
 
 func Update(r *restful.Request, w *restful.Response)  {
@@ -37,6 +52,7 @@ func Delete(r *restful.Request, w *restful.Response)  {
 
 }
 
+// get storage of the config object.
 func getStorage() storage.Storage {
 	bs := storage.GetStorage(storageType, redisAddr, redisPasswd, redisDb)
 	return bs

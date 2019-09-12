@@ -17,7 +17,7 @@ func NewServer(addr string) *Server {
 }
 
 type Server struct {
-	addr string
+	addr    string
 	Handler *DnsHandler
 }
 

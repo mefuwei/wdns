@@ -13,17 +13,17 @@ const (
 )
 
 var (
-	defaultServers = []string{"114.114.114.114", }
-	defaultPort = 53
+	defaultServers = []string{"114.114.114.114"}
+	defaultPort    = 53
 
 	// TODO used config
 	storageType = "redis"
-	redisAddr = "localhost:6379"
+	redisAddr   = "localhost:6379"
 	redisPasswd = ""
-	redisDb = 1
+	redisDb     = 1
 )
 
-type DnsHandler struct {}
+type DnsHandler struct{}
 
 func (d *DnsHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	h := NewHandler(w, r)

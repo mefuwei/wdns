@@ -17,13 +17,13 @@ const (
 )
 
 var (
-	dnsMsgKey = "dns:%s:%d" // dns:{domainName}:{qtype} dns:www.qianbao-inc.com:1
+	dnsMsgKey    = "dns:%s:%d" // dns:{domainName}:{qtype} dns:www.qianbao-inc.com:1
 	dnsPrefixKey = "dns:*"
 
 	// falied message
-	RedisGetFailed = "redis backend storage get key: %s name: %s type: %d failed, %s"
-	RedisSetFailed = "redis backend storage set key: %s failed, %s"
-	JsonParseFailed = "redis backend storage json parse msg failed name: %s type %d, %s"
+	RedisGetFailed    = "redis backend storage get key: %s name: %s type: %d failed, %s"
+	RedisSetFailed    = "redis backend storage set key: %s failed, %s"
+	JsonParseFailed   = "redis backend storage json parse msg failed name: %s type %d, %s"
 	ParseDnsMsgFailed = "redis backend storage parse dns.msg failed name: %s type: %d, %s"
 )
 
@@ -119,7 +119,7 @@ func (rbs *RedisBackendStorage) set(key string, records []Record) error {
 		return fmt.Errorf(RedisSetFailed, key, err.Error())
 	}
 
-	if _, err := rbs.Client.Set(key, data, time.Microsecond * 0).Result(); err != nil {
+	if _, err := rbs.Client.Set(key, data, time.Microsecond*0).Result(); err != nil {
 		return err
 	}
 	return nil
@@ -163,7 +163,7 @@ func (rbs *RedisBackendStorage) Ping() bool {
 
 // API
 // Todo list rewrite
-func (rbs *RedisBackendStorage) ApiList() (records []Record, err error)  {
+func (rbs *RedisBackendStorage) ApiList() (records []Record, err error) {
 
 }
 
@@ -178,4 +178,3 @@ func (rbs *RedisBackendStorage) ApiGet(name string, qtype uint16) (records []Rec
 func (rbs *RedisBackendStorage) ApiSet(records []Record) error {
 	return rbs.Set(records)
 }
-
