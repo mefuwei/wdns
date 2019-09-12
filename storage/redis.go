@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/golang/glog"
@@ -25,6 +26,8 @@ var (
 	RedisSetFailed    = "redis backend storage set key: %s failed, %s"
 	JsonParseFailed   = "redis backend storage json parse msg failed name: %s type %d, %s"
 	ParseDnsMsgFailed = "redis backend storage parse dns.msg failed name: %s type: %d, %s"
+
+	RecordParamsNullFailed = errors.New("record rtype or host or domain or value is Null")
 )
 
 func NewRedisBackendStorage(Addr, Password string, db int) *RedisBackendStorage {
@@ -104,6 +107,9 @@ func (rbs *RedisBackendStorage) Set(records []Record) error {
 	var key string
 
 	for _, record := range records {
+		if err := rbs.checkRecord(record); err != nil {
+			return err
+		}
 		name = ParseName(record.Host, record.Domain)
 		qtype = record.Rtype
 		break
@@ -161,10 +167,17 @@ func (rbs *RedisBackendStorage) Ping() bool {
 	return true
 }
 
+func (rbs *RedisBackendStorage) checkRecord(record Record) error {
+	if record.Rtype == 0 || record.Host == "" || record.Domain == "" || record.Value == "" {
+		return RecordParamsNullFailed
+	}
+	return nil
+}
+
 // API
 // Todo list rewrite
 func (rbs *RedisBackendStorage) ApiList() (records []Record, err error) {
-
+	return
 }
 
 func (rbs *RedisBackendStorage) ApiGet(name string, qtype uint16) (records []Record, err error) {

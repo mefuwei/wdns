@@ -3,23 +3,29 @@ package main
 import (
 	"flag"
 	"github.com/mefuwei/dns/core"
+	"time"
 )
 
 var (
-	addr string
+	dnsAddr string
+	webAddr string
 )
 
 func init() {
 	flag.Parse()
 	_ = flag.Set("stderrthreshold", "info")
-	flag.StringVar(&addr, "dnsAddr", "0.0.0.0:53", "bind host, example 192.168.1.1:53")
-	flag.StringVar(&addr, "webAddr", "0.0.0.0:8080", "bind host, example 192.168.1.1:8080")
+	flag.StringVar(&dnsAddr, "dnsAddr", "0.0.0.0:53", "bind host, example 192.168.1.1:53")
+	flag.StringVar(&webAddr, "webAddr", "0.0.0.0:8080", "bind host, example 192.168.1.1:8080")
 }
 
 func main() {
-	dnsServer := core.NewDnsServer(addr)
+	dnsServer := core.NewDnsServer(dnsAddr)
 	dnsServer.Start()
 
-	webServer := core.NewWebServer(addr)
+	webServer := core.NewWebServer(webAddr)
 	webServer.Start()
+
+	for {
+		time.Sleep(time.Second * 3)
+	}
 }

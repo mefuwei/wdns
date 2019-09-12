@@ -27,7 +27,7 @@ func DnsGet(r *restful.Request, w *restful.Response)  {
 }
 
 func DnsAdd(r *restful.Request, w *restful.Response)  {
-	records := []storage.Record
+	var records []storage.Record
 	err := r.ReadEntity(&records)
 	if err != nil {
 		FailedResp(r, w, http.StatusBadRequest, err.Error())
@@ -36,6 +36,9 @@ func DnsAdd(r *restful.Request, w *restful.Response)  {
 
 	s := getStorage()
 	if err := s.Set(records); err != nil {
+		if err == storage.RecordParamsNullFailed {
+			FailedResp(r, w, http.StatusBadRequest, err.Error())
+		}
 		FailedResp(r, w, http.StatusInternalServerError, err.Error())
 	}
 
