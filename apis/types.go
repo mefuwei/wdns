@@ -12,7 +12,7 @@ func SuccessResp(r *restful.Request, w *restful.Response, data interface{})  {
 		w:       w,
 		Data:    data,
 	}
-	resp.write(w, http.StatusOK)
+	resp.success()
 }
 
 func FailedResp(r *restful.Request, w *restful.Response, code int, message string)  {
@@ -21,7 +21,7 @@ func FailedResp(r *restful.Request, w *restful.Response, code int, message strin
 		w:       w,
 		Data:    nil,
 	}
-	resp.Failed(w, code, message)
+	resp.failed(code, message)
 }
 
 type Resp struct {
@@ -33,7 +33,11 @@ type Resp struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func (r *Resp) Failed(w *restful.Response, code int, message string) {
+func (r *Resp) success() {
+	r.write(http.StatusOK)
+}
+
+func (r *Resp) failed(code int, message string) {
 	switch code {
 	case http.StatusUnauthorized:
 		r.Title = "请求未认证"
@@ -61,11 +65,11 @@ func (r *Resp) Failed(w *restful.Response, code int, message string) {
 			r.Message = "你的请求参数错误"
 		}
 	}
-	r.write(w, code)
+	r.write(code)
 }
 
-func (r *Resp) write(w *restful.Response, code int) {
-	if err := w.WriteHeaderAndEntity(code, r); err != nil {
+func (r *Resp) write(code int) {
+	if err := r.w.WriteHeaderAndEntity(code, r); err != nil {
 		glog.Errorf("write msg to restful.Response failed, %s", err.Error())
 	}
 }

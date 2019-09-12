@@ -1,27 +1,30 @@
 package core
 
 import (
+	"github.com/emicklei/go-restful"
 	"github.com/golang/glog"
+	"github.com/mefuwei/dns/apis"
 	"github.com/miekg/dns"
 	"net"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 )
 
-func NewServer(addr string) *Server {
-	return &Server{
+func NewDnsServer(addr string) *DnsServer {
+	return &DnsServer{
 		addr:    addr,
 		Handler: &DnsHandler{},
 	}
 }
 
-type Server struct {
+type DnsServer struct {
 	addr    string
 	Handler *DnsHandler
 }
 
-func (s *Server) Start() {
+func (s *DnsServer) Start() {
 	prots := []string{"udp", "tcp"}
 
 	for _, p := range prots {
@@ -39,4 +42,24 @@ func (s *Server) Start() {
 	for {
 		time.Sleep(time.Second * 3)
 	}
+}
+
+func NewWebServer(addr string) *WebServer {
+	return &WebServer{
+		addr: addr,
+	}
+}
+
+type WebServer struct {
+	addr    string
+}
+
+func (w *WebServer) Start() {
+	service := new(restful.WebService)
+	service.Path("/api/v1").Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON)
+
+	service.Route(service.POST("dns").To(apis.DnsAdd))
+
+	restful.Add(service)
+	go glog.Fatal(http.ListenAndServe(w.addr, nil))
 }

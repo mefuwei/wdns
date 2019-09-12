@@ -4,7 +4,6 @@ package apis
 
 import (
 	"github.com/emicklei/go-restful"
-	"github.com/golang/glog"
 	"github.com/mefuwei/dns/storage"
 	"net/http"
 )
@@ -18,16 +17,16 @@ var (
 )
 
 // todo list rewrite
-func List(r *restful.Request, w *restful.Response)  {
+func DnsList(r *restful.Request, w *restful.Response)  {
 	getStorage()
 }
 
-func Get(r *restful.Request, w *restful.Response)  {
+func DnsGet(r *restful.Request, w *restful.Response)  {
 	//bs := getStorage()
 	//records, err := bs.Get(name, qtype)
 }
 
-func Add(r *restful.Request, w *restful.Response)  {
+func DnsAdd(r *restful.Request, w *restful.Response)  {
 	records := []storage.Record
 	err := r.ReadEntity(&records)
 	if err != nil {
@@ -44,11 +43,11 @@ func Add(r *restful.Request, w *restful.Response)  {
 	return
 }
 
-func Update(r *restful.Request, w *restful.Response)  {
+func DnsUpdate(r *restful.Request, w *restful.Response)  {
 
 }
 
-func Delete(r *restful.Request, w *restful.Response)  {
+func DnsDelete(r *restful.Request, w *restful.Response)  {
 
 }
 
