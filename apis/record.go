@@ -2,6 +2,12 @@
 
 package apis
 
+/*
+	RecordAdd	添加记录 POST /api/v1/domain/{id}/records
+	RecordDel	删除记录 DELETE /api/v1/domain/{id}/records/{rid}
+	RecordList	列出记录 GET /api/v1/domain/{id}/records
+ */
+
 import (
 	"github.com/emicklei/go-restful"
 	"github.com/mefuwei/dns/storage"
@@ -27,7 +33,9 @@ func DnsGet(r *restful.Request, w *restful.Response)  {
 }
 
 func DnsAdd(r *restful.Request, w *restful.Response)  {
-	var records []storage.Record
+
+	records := make([]storage.Record, 10)
+
 	err := r.ReadEntity(&records)
 	if err != nil {
 		FailedResp(r, w, http.StatusBadRequest, err.Error())

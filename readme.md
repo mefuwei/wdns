@@ -8,8 +8,28 @@ main -> core.Server -> Handlers -> storage...
 - [] 实现restful功能
 - [] 实现权威DNS的功能
 - [] 高性能支持低TTL
-- [] View 支持根据不同IP地址加载不同配置，默认为default
-  
+- [] 支持线路功能
+
+# Restful API
+
+## 线路API：
+- LineAdd		添加线路		POST /api/v1/lines
+- LineDel		删除线路		DELETE /api/v1/lines/{id}
+- LineUpdate	更新线路		PUT /api/lines/{id}
+- LineList	列出线路		GET /api/v1/lines
+- Line		查找单条线路	GET /api/v1/lines/{id}
+
+## 域名API：
+- DomainAdd	添加域名  POST /api/v1/domains
+- DomainDel	删除域名  DELETE /api/v1/domains/{id}
+- DomainList	域名列表  GET /api/v1/domains
+- Domain		单个域名  GET /api/v1/domains/{id}
+
+## 记录API：
+- RecordAdd	添加记录 POST /api/v1/domain/{id}/records
+- RecordDel	删除记录 DELETE /api/v1/domain/{id}/records/{rid}
+- RecordList	列出记录 GET /api/v1/domain/{id}/records
+
 ## 说明 
 1. 安装
 ```bash
