@@ -1,13 +1,35 @@
 #### 一个简单快速的dns缓存服务器，由go编写。
 > 类似 dnsmasq,支持功能 智能区域解析 缓存 转发 ,本地解析支持类型 A记录 AAAA 记录 CNAME
 
+main -> core.Server -> Handlers -> storage...
+
 ## 任务列表
 - [x] 项目分离测试
 - [] 实现restful功能
 - [] 实现权威DNS的功能
 - [] 高性能支持低TTL
-- [] View 支持根据不同IP地址加载不同配置，默认为default
-  
+- [] 支持线路功能
+
+# Restful API
+
+## 线路API：
+- LineAdd		添加线路		POST /api/v1/lines
+- LineDel		删除线路		DELETE /api/v1/lines/{id}
+- LineUpdate	更新线路		PUT /api/lines/{id}
+- LineList	列出线路		GET /api/v1/lines
+- Line		查找单条线路	GET /api/v1/lines/{id}
+
+## 域名API：
+- DomainAdd	添加域名  POST /api/v1/domains
+- DomainDel	删除域名  DELETE /api/v1/domains/{id}
+- DomainList	域名列表  GET /api/v1/domains
+- Domain		单个域名  GET /api/v1/domains/{id}
+
+## 记录API：
+- RecordAdd	添加记录 POST /api/v1/domain/{id}/records
+- RecordDel	删除记录 DELETE /api/v1/domain/{id}/records/{rid}
+- RecordList	列出记录 GET /api/v1/domain/{id}/records
+
 ## 说明 
 1. 安装
 ```bash
