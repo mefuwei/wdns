@@ -2,7 +2,7 @@ package core
 
 import (
 	"github.com/golang/glog"
-	"github.com/mefuwei/dns/storage"
+	"github.com/mefuwei/wdns/storage"
 	"github.com/miekg/dns"
 	"net"
 	"strconv"

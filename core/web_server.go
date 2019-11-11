@@ -3,7 +3,7 @@ package core
 import (
 	"github.com/emicklei/go-restful"
 	"github.com/golang/glog"
-	"github.com/mefuwei/dns/apis"
+	"github.com/mefuwei/wdns/apis"
 	"net/http"
 	"os"
 )
@@ -15,7 +15,7 @@ func NewWebServer(addr string) *WebServer {
 }
 
 type WebServer struct {
-	addr    string
+	addr string
 }
 
 func (w *WebServer) Start() {
@@ -35,7 +35,7 @@ func (w *WebServer) Start() {
 	}()
 }
 
-func beforeFilers(req *restful.Request, resp *restful.Response, chain *restful.FilterChain)  {
+func beforeFilers(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	glog.Infof("[%s] %s", req.Request.Method, req.Request.URL)
 	chain.ProcessFilter(req, resp)
 }

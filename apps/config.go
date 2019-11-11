@@ -13,7 +13,6 @@ import (
 
 type DNSServerSetting struct {
 	Host string
-	Port int
 }
 
 type RedisSettings struct {
