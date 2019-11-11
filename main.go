@@ -1,7 +1,7 @@
 package main
 
 import (
-	"mefuwei/wdns/apps"
+	"github.com/mefuwei/wdns/apps"
 	"os"
 	"os/signal"
 	"time"
