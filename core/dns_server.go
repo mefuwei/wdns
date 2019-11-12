@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/golang/glog"
 	"github.com/miekg/dns"
 	"net"
@@ -27,7 +28,8 @@ func (s *DnsServer) Start() {
 		netAddr := net.JoinHostPort(s.addr, p)
 
 		srv := &dns.Server{Addr: s.addr, Net: p, Handler: s.Handler}
-		glog.Infof("dns starting %s Server, listen %s...", strings.ToUpper(p), netAddr)
+		fmt.Printf("dns starting %s Server, listen %s...\n", strings.ToUpper(p), s.addr)
+		glog.Infof("dns starting %s Server, listen %s...", strings.ToUpper(p), s.addr)
 		go func() {
 			if err := srv.ListenAndServe(); err != nil {
 				glog.Fatalf("dns starting %s Server, listen %s failed, %s", strings.ToUpper(p), netAddr, err.Error())
